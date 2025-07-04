@@ -2,7 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AdminController;
+use App\Http\Controllers\UsuarioController;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,8 +19,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::post('registro', [AdminController::class,'registro']);
-Route::post('login', [AdminController::class,'login']);
-////ADMINISTRADOR///////////////////////////////////////////////////////////////////////////////////////////
-Route::post('addadmin', [AdminController::class,'AddAdmin']);
+//----------------------------------------------------------------------------------------------------------------------------
+Route::post('registro', [UsuarioController::class,'registro']);
+Route::post('login', [UsuarioController::class,'login']);
+//---------------------------------------------------------------------------------------------------------------------------
 
