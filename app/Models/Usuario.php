@@ -3,11 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Notifications\Notifiable;
 
-class Usuario extends Model
+class Usuario extends Authenticatable
 {
-    use HasFactory;
+    use HasFactory, Notifiable, HasApiTokens;
     //Se espesifica el nombre de la tabla en la base de datos
     protected $table = 'usuarios';
     //si la clave primaria no es id se espesifica aqui si es nesesario
@@ -16,13 +19,18 @@ class Usuario extends Model
     protected $fillable = [
         'nombre',
         'correo',
-        'contraseña',
+        'password',
         //'rol',
         //'empresa_id',
     ];
 
     // Desactiva timestamps automáticos porque usas creado_en
     public $timestamps = false;
+    
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
 
     // Relación con empresa 
     //public function empresa()

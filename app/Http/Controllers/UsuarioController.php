@@ -38,15 +38,18 @@ class UsuarioController extends Controller
     public function login(Request $req)
     {
         //validar las credenciales
-        $credentials = $req->only('correo','contraseña');
+        $credentials = $req->only('correo','password');
         //buscar el usuario en la base de datos
         $usuario = Usuario::where('correo', $credentials['correo'])->first();
         //verificar que el administrador existe y que la contraseña es correcta
-        if($usuario&& Hash::check($credentials['contraseña'], $usuario->contraseña)){
+        if($usuario&& Hash::check($credentials['password'], $usuario->password)){
+            //Generacion de token con Sanctum
+            $token = $usuario->createToken('auth_token')->plainTextToken;
+
             return response()->json([
                 'success'=> true,
-                'user'=> $usuario,
-                
+                'correo'=> $usuario,
+                'token'=> $token
             ]);
         } else{
             //si las credenciales son incorrectas

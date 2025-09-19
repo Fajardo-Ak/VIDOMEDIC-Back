@@ -29,6 +29,8 @@ Route::post('login', [UsuarioController::class,'login']);
 //---------------------------------------------------------------------------------------------------------------------------
 //rutas protegidas----------------------------------------------------------------------------------------------------------
 Route::middleware('auth:sanctum')->group(function () {
+    //inicio
+    //Route::apiResource('inicio', ContactoController::class);
     // Contactos
     Route::apiResource('contactos', ContactoController::class);
     
