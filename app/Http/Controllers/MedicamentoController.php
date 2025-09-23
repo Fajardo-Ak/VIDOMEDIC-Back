@@ -2,16 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Medicamento;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class MedicamentoController extends Controller
 {
+    // GET - Listado de medicamentos del usuario
     public function index()
     {
         $usuarioId = Auth::id();
-        $medicamentos = Medicamento::where('usuario_id', $usuarioId)->get();
+        $medicamentos = Medicamento::where('usuario_id', $usuarioId)
+            ->orderBy('created_at', 'desc')
+            ->get();
         
         return response()->json([
             'success' => true,
@@ -19,19 +22,32 @@ class MedicamentoController extends Controller
         ]);
     }
 
+    // POST - Crear nuevo medicamento
     public function store(Request $req)
     {
         $req->validate([
             'nombre' => 'required|string|max:100',
-            'dosis' => 'required|string|max:50',
-            'notas_opcionales' => 'nullable|string'
+            'via_administracion' => 'required|in:Oral,Inyectable,Tópica,Otro',
+            'via_administracion_personalizada' => 'nullable|string|max:50',
+            'dosis' => 'required|string|max:100',
+            'importancia' => 'sometimes|in:Alta,Media,Baja'
         ]);
+
+        // Validar "Otro"
+        if ($req->via_administracion === 'Otro' && empty($req->via_administracion_personalizada)) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Especifica la vía de administración cuando selecciona "Otro"'
+            ], 422);
+        }
 
         $medicamento = new Medicamento;
         $medicamento->usuario_id = Auth::id();
-        $medicamento->nombre = $req->input('nombre');
-        $medicamento->dosis = $req->input('dosis');
-        $medicamento->notas_opcionales = $req->input('notas_opcionales');
+        $medicamento->nombre = $req->nombre;
+        $medicamento->via_administracion = $req->via_administracion;
+        $medicamento->via_administracion_personalizada = $req->via_administracion_personalizada;
+        $medicamento->dosis = $req->dosis;
+        $medicamento->importancia = $req->importancia ?? 'Baja';
         $medicamento->save();
 
         return response()->json([
@@ -40,21 +56,57 @@ class MedicamentoController extends Controller
         ], 201);
     }
 
+    // GET - Mostrar un medicamento
+    public function show($id)
+    {
+        $usuarioId = Auth::id();
+        $medicamento = Medicamento::where('usuario_id', $usuarioId)->find($id);
+
+        if (!$medicamento) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Medicamento no encontrado'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $medicamento
+        ]);
+    }
+
+    // PUT - Actualizar medicamento
     public function update(Request $req, $id)
     {
+        $usuarioId = Auth::id();
+        $medicamento = Medicamento::where('usuario_id', $usuarioId)->find($id);
+
+        if (!$medicamento) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Medicamento no encontrado'
+            ], 404);
+        }
+
         $req->validate([
-            'nombre' => 'required|string|max:100',
-            'dosis' => 'required|string|max:50',
-            'notas_opcionales' => 'nullable|string'
+            'nombre' => 'sometimes|required|string|max:100',
+            'via_administracion' => 'sometimes|required|in:Oral,Inyectable,Tópica,Otro',
+            'via_administracion_personalizada' => 'nullable|string|max:50',
+            'dosis' => 'sometimes|required|string|max:100',
+            'importancia' => 'sometimes|in:Alta,Media,Baja'
         ]);
 
-        $medicamento = Medicamento::where('usuario_id', Auth::id())
-                                ->where('id', $id)
-                                ->firstOrFail();
+        // Validar "Otro"
+        if ($req->has('via_administracion') && 
+            $req->via_administracion === 'Otro' && 
+            empty($req->via_administracion_personalizada)) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Especifica la vía de administración cuando selecciona "Otro"'
+            ], 422);
+        }
 
-        $medicamento->nombre = $req->input('nombre');
-        $medicamento->dosis = $req->input('dosis');
-        $medicamento->notas_opcionales = $req->input('notas_opcionales');
+        $medicamento->fill($req->all());
         $medicamento->save();
 
         return response()->json([
@@ -63,11 +115,18 @@ class MedicamentoController extends Controller
         ]);
     }
 
+    // DELETE - Eliminar medicamento
     public function destroy($id)
     {
-        $medicamento = Medicamento::where('usuario_id', Auth::id())
-                                ->where('id', $id)
-                                ->firstOrFail();
+        $usuarioId = Auth::id();
+        $medicamento = Medicamento::where('usuario_id', $usuarioId)->find($id);
+
+        if (!$medicamento) {
+            return response()->json([
+                'success' => false,
+                'error' => 'Medicamento no encontrado'
+            ], 404);
+        }
 
         $medicamento->delete();
 

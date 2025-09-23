@@ -23,15 +23,26 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-//----------------------------------------------------------------------------------------------------------------------------
+///RUTAS PUBLICAS///--------------------------------------------------------------------------------------------------------
 Route::post('registro', [UsuarioController::class,'registro']);
 Route::post('login', [UsuarioController::class,'login']);
-//---------------------------------------------------------------------------------------------------------------------------
-//rutas protegidas----------------------------------------------------------------------------------------------------------
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+///RUTAS PROTEGIDAS///------------------------------------------------------------------------------------------------------
 Route::middleware('auth:sanctum')->group(function () {
-    //inicio
+///INICIO RUTAS///----------------------------------------------------------------------------------------------------------
     //Route::apiResource('inicio', ContactoController::class);
-    // Contactos
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+///MEDICAMENTOS RUTAS///----------------------------------------------------------------------------------------------------
+    Route::get('/medicamentos', [MedicamentoController::class, 'index']);
+    Route::post('/medicamentos', [MedicamentoController::class, 'store']);
+    Route::get('/medicamentos/{id}', [MedicamentoController::class, 'show']);
+    Route::put('/medicamentos/{id}', [MedicamentoController::class, 'update']);
+    Route::delete('/medicamentos/{id}', [MedicamentoController::class, 'destroy']);
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Contactos
     Route::apiResource('contactos', ContactoController::class);
     
     // Medicamentos
