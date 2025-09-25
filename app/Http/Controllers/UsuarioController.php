@@ -16,17 +16,17 @@ class UsuarioController extends Controller
         $req->validate([
             'nombre' => 'required|string|max:100',
             'correo' => 'required|email|unique:usuarios,correo',
-            'contraseña' => 'required|min:1',
+            'password' => 'required|min:1',
             //'rol' => 'in:usuario,empresa',
             //'empresa_id' => 'nullable|integer|exists:empresas,id',
         ]);
         
          
-        //se crea un nuevo administrador
+        //se crea un nuevo Usuario
         $usuario = new Usuario;
         $usuario->nombre= $req->input('nombre');
         $usuario->correo= $req->input('correo');
-        $usuario->contraseña= Hash::make($req->input('contraseña'));
+        $usuario->password= Hash::make($req->input('password'));
         //$usuario->rol= $req->rol ?? 'usuario',
         //$usuario->empresa_id= $req->input(('empresa_id,'));
         $usuario->save();
