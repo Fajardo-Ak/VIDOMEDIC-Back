@@ -26,12 +26,17 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 ///RUTAS PUBLICAS///--------------------------------------------------------------------------------------------------------
 Route::post('registro', [UsuarioController::class,'registro']);
 Route::post('login', [UsuarioController::class,'login']);
+//rutas para diversos providers
+// OAuth Routes
+Route::get('/auth/{provider}/redirect', [UsuarioController::class, 'redirectToProvider']);
+Route::get('/auth/{provider}/callback', [UsuarioController::class, 'handleProviderCallback']);
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ///RUTAS PROTEGIDAS///------------------------------------------------------------------------------------------------------
 Route::middleware('auth:sanctum')->group(function () {
 ///INICIO RUTAS///----------------------------------------------------------------------------------------------------------
-    //Route::apiResource('inicio', ContactoController::class);
+    //Route::apiResource('inicio', ContactoController::class); nose que hace :u
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ///MEDICAMENTOS RUTAS///----------------------------------------------------------------------------------------------------
@@ -42,9 +47,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/medicamentos/{id}', [MedicamentoController::class, 'destroy']);
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Contactos
+///CONFIGURACIONES RUTAS///------------------------------------------------------------------------------------------------
+    ///SECCION CUENTA
+    Route::get('/usuario/perfil', [UsuarioController::class, 'obtenerPerfil']);
+    Route::put('/usuario/perfil', [UsuarioController::class, 'editarPerfil']);
+    Route::put('/usuario/password', [UsuarioController::class, 'cambiarPassword']);
+    Route::post('/usuario/foto', [UsuarioController::class, 'subirFoto']);
+    ///SECCION CONTACTOS
     Route::apiResource('contactos', ContactoController::class);
-    
+    ///SECCION ACTULIZACION
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // Medicamentos
     Route::apiResource('medicamentos', MedicamentoController::class);
     

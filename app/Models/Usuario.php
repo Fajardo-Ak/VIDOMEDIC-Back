@@ -20,6 +20,9 @@ class Usuario extends Authenticatable
         'nombre',
         'correo',
         'password',
+        'foto_perfil',
+        'provider',
+        'provider_id',
         //'rol',
         //'empresa_id',
     ];

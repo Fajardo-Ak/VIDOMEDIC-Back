@@ -16,6 +16,7 @@ class Medicamento extends Model
         'via_administracion',
         'via_administracion_perzonalizada',
         'dosis',
+        'frecuencia',
         'importancia'
     ];
 

@@ -30,6 +30,7 @@ class MedicamentoController extends Controller
             'via_administracion' => 'required|in:Oral,Inyectable,Tópica,Otro',
             'via_administracion_personalizada' => 'nullable|string|max:50',
             'dosis' => 'required|string|max:100',
+            'frecuencia' => 'required|string|max:50',
             'importancia' => 'sometimes|in:Alta,Media,Baja'
         ]);
 
@@ -47,6 +48,7 @@ class MedicamentoController extends Controller
         $medicamento->via_administracion = $req->via_administracion;
         $medicamento->via_administracion_personalizada = $req->via_administracion_personalizada;
         $medicamento->dosis = $req->dosis;
+        $medicamento->frecuencia = $req->frecuencia;
         $medicamento->importancia = $req->importancia ?? 'Baja';
         $medicamento->save();
 
@@ -93,6 +95,7 @@ class MedicamentoController extends Controller
             'via_administracion' => 'sometimes|required|in:Oral,Inyectable,Tópica,Otro',
             'via_administracion_personalizada' => 'nullable|string|max:50',
             'dosis' => 'sometimes|required|string|max:100',
+            'frecuencia' => 'sometimes|required|string|max:50',
             'importancia' => 'sometimes|in:Alta,Media,Baja'
         ]);
 
