@@ -26,6 +26,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 ///RUTAS PUBLICAS///--------------------------------------------------------------------------------------------------------
 Route::post('registro', [UsuarioController::class,'registro']);
 Route::post('login', [UsuarioController::class,'login']);
+///SECCION ACTULIZACION
+Route::get('/actualizaciones', [ContactoController::class, 'actualizaciones']);
 //rutas para diversos providers
 // OAuth Routes
 Route::get('/auth/{provider}/redirect', [UsuarioController::class, 'redirectToProvider']);
@@ -54,13 +56,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/usuario/password', [UsuarioController::class, 'cambiarPassword']);
     Route::post('/usuario/foto', [UsuarioController::class, 'subirFoto']);
     ///SECCION CONTACTOS
-    Route::apiResource('contactos', ContactoController::class);
-    ///SECCION ACTULIZACION
-
+    Route::get('/contactos', [ContactoController::class, 'index']);
+    Route::post('/contactos', [ContactoController::class, 'store']);
+    Route::put('/contactos/{id}', [ContactoController::class, 'update']);
+    Route::delete('/contactos/{id}', [ContactoController::class, 'destroy']);
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // Medicamentos
-    Route::apiResource('medicamentos', MedicamentoController::class);
-    
     // Agenda
     Route::apiResource('agenda', AgendaController::class);
     
