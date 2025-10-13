@@ -33,7 +33,7 @@ class UsuarioController extends Controller
         return $usuario;
     }
 
-    // funcion de login (misma estructura)
+    // funcion de login
     public function login(Request $req)
     {
         $credentials = $req->only('correo','password');
@@ -53,6 +53,25 @@ class UsuarioController extends Controller
             'success'=>false,
             'message'=>'Credenciales incorrectas',
         ], 400);
+    }
+
+    // funcion de logout
+    public function logout(Request $request)
+    {
+        try {
+            // Revocar el token actual
+            $request->user()->currentAccessToken()->delete();
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Sesión cerrada correctamente'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al cerrar sesión'
+            ], 500);
+        }
     }
 
     // 1. Obtener perfil (igual)
