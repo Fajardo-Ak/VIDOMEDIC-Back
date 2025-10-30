@@ -11,22 +11,27 @@ class Medicamento extends Model
     protected $table = 'medicamentos';
     
     protected $fillable = [
-        'usuario_id',
-        'nombre',
-        'via_administracion',
-        'via_administracion_perzonalizada',
-        'dosis',
-        'frecuencia',
-        'importancia'
+        'usuario_id', 'nombre', 'via_administracion', 
+        'via_administracion_personalizada', 'presentacion'
     ];
 
-    protected $attributes = [
-        'importancia' => 'Baja'
-    ];
-
-    //relacion con usuario
-    public function usuario()
+    // Relación con TratamientoMedicamento
+    public function tratamientoMedicamentos()
     {
-        return $this->belongsTo(Usuario::class);
+        return $this->hasMany(TratamientoMedicamento::class);
+    }
+
+    // Relación directa con Tratamientos a través de TratamientoMedicamento
+    public function tratamientos()
+    {
+        return $this->hasManyThrough(
+            Tratamiento::class,
+            TratamientoMedicamento::class,
+            'medicamento_id', // FK en TratamientoMedicamento
+            'id', // FK en Tratamiento
+            'id', // Local key en Medicamento
+            'tratamiento_id' // Local key en TratamientoMedicamento
+        );
     }
 }
+
