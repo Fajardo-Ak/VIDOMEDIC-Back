@@ -8,30 +8,36 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Medicamento extends Model
 {
     use HasFactory;
+    
     protected $table = 'medicamentos';
     
     protected $fillable = [
         'usuario_id', 'nombre', 'via_administracion', 
-        'via_administracion_personalizada', 'presentacion'
+        'via_administracion_personalizada', 'presentacion',
+        'importancia', 'activo'
     ];
 
-    // Relación con TratamientoMedicamento
-    public function tratamientoMedicamentos()
+    protected $casts = [
+        'activo' => 'boolean',
+        'importancia' => 'string'
+    ];
+
+    // Relación con DetalleTratamiento (actualizada)
+    public function detalleTratamientos()
     {
-        return $this->hasMany(TratamientoMedicamento::class);
+        return $this->hasMany(DetalleTratamiento::class, 'medicamento_id');
     }
 
-    // Relación directa con Tratamientos a través de TratamientoMedicamento
+    // Relación con tratamientos a través de detalleTratamientos
     public function tratamientos()
     {
         return $this->hasManyThrough(
             Tratamiento::class,
-            TratamientoMedicamento::class,
-            'medicamento_id', // FK en TratamientoMedicamento
-            'id', // FK en Tratamiento
+            DetalleTratamiento::class,
+            'medicamento_id', // FK en DetalleTratamiento
+            'id', // FK en Tratamiento  
             'id', // Local key en Medicamento
-            'tratamiento_id' // Local key en TratamientoMedicamento
+            'tratamiento_id' // Local key en DetalleTratamiento
         );
     }
 }
-

@@ -5,9 +5,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UsuarioController;
 use App\Http\Controllers\ContactoController;
 use App\Http\Controllers\MedicamentoController;
-use App\Http\Controllers\AgendaController;
-use App\Http\Controllers\HistorialRecordatorioController;
 use App\Http\Controllers\TratamientoController;
+use App\Http\Controllers\DosisController;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,7 +18,6 @@ use App\Http\Controllers\TratamientoController;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
-
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
@@ -54,8 +52,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/medicamentos/{id}', [MedicamentoController::class, 'update']);
     Route::delete('/medicamentos/{id}', [MedicamentoController::class, 'destroy']);
     /////////////////////////////////////////////////////////////////////////////////////////
-    Route::get('/medicamentos/buscar', [TratamientoController::class, 'buscarMedicamentos']);
-    Route::post('/dosis/{id}/marcar', [TratamientoController::class, 'marcarDosis']);
+    Route::get('/medicamentos/buscar', [MedicamentoController::class, 'buscar']); // ACTUALIZADA
+    Route::get('/medicamentos/mas-usados', [MedicamentoController::class, 'masUsados']); // NUEVA
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ///CONFIGURACIONES RUTAS///------------------------------------------------------------------------------------------------
@@ -72,6 +70,7 @@ Route::middleware('auth:sanctum')->group(function () {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ///TRATAMIENTO RUTAS///----------------------------------------------------------------------------------------------------
+    Route::get('/tratamientos/verificar-activo', [TratamientoController::class, 'verificarActivo']);
     Route::get('/tratamientos', [TratamientoController::class, 'index']);
     Route::post('/tratamientos', [TratamientoController::class, 'store']);
     Route::get('/tratamientos/{id}', [TratamientoController::class, 'show']);
@@ -79,8 +78,18 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/tratamientos/{id}', [TratamientoController::class, 'destroy']);
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+///DOSIS RUTAS///----------------------------------------------------------------------------------------------------------
+    Route::get('/dosis/agenda-semanal', [DosisController::class, 'agendaSemanal']); // NUEVA
+    Route::get('/dosis/agenda-mensual', [DosisController::class, 'agendaMensual']); // NUEVA
+    Route::get('/dosis/pendientes-hoy', [DosisController::class, 'pendientesHoy']); // NUEVA
+    Route::get('/dosis/proximas', [DosisController::class, 'proximasDosis']); // NUEVA
+    Route::get('/dosis/estadisticas-adherencia', [DosisController::class, 'estadisticasAdherencia']); // NUEVA
+    Route::put('/dosis/{id}/marcar', [DosisController::class, 'marcarDosis']); // ACTUALIZADA
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 ///AGENDA RUTAS///---------------------------------------------------------------------------------------------------------
-    Route::get('/agenda/semana', [TratamientoController::class, 'agendaSemanal']);
-    Route::get('/agenda/mes', [TratamientoController::class, 'agendaMensual']);
+    // Estas rutas las mantenemos por compatibilidad, pero ahora usan DosisController
+    Route::get('/agenda/semana', [DosisController::class, 'agendaSemanal']); // ACTUALIZADA
+    Route::get('/agenda/ames', [DosisController::class, 'agendaMensual']); // ACTUALIZADA
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 });

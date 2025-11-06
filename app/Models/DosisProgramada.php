@@ -6,31 +6,35 @@ use Illuminate\Database\Eloquent\Model;
 
 class DosisProgramada extends Model
 {
+    protected $table = 'dosis_programadas'; // Especificar tabla
+
     protected $fillable = [
-        'tratamiento_medicamento_id', 'fecha_hora', 'tomada'
+        'tratamiento_medicamento_id', 'fecha_hora', 'fecha_hora_tomada',
+        'estado', 'tomada', 'notas_toma'
     ];
 
     protected $casts = [
         'fecha_hora' => 'datetime',
+        'fecha_hora_tomada' => 'datetime',
         'tomada' => 'boolean',
     ];
 
-    // Relación con TratamientoMedicamento
-    public function tratamientoMedicamento()
+    // Relación con DetalleTratamiento (CORREGIDA)
+    public function detalleTratamiento()
     {
-        return $this->belongsTo(TratamientoMedicamento::class);
+        return $this->belongsTo(DetalleTratamiento::class, 'tratamiento_medicamento_id');
     }
 
-    // Acceso directo al medicamento
+    // Relación con Medicamento a través de DetalleTratamiento
     public function medicamento()
     {
         return $this->hasOneThrough(
             Medicamento::class,
-            TratamientoMedicamento::class,
-            'id', // FK en TratamientoMedicamento
-            'id', // FK en Medicamento
+            DetalleTratamiento::class,
+            'id', // FK en DetalleTratamiento
+            'id', // FK en Medicamento  
             'tratamiento_medicamento_id', // Local key en DosisProgramada
-            'medicamento_id' // Local key en TratamientoMedicamento
+            'medicamento_id' // Local key en DetalleTratamiento
         );
     }
 }
