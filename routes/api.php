@@ -46,14 +46,13 @@ Route::middleware('auth:sanctum')->group(function () {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ///MEDICAMENTOS RUTAS///----------------------------------------------------------------------------------------------------
+    Route::get('/medicamentos/buscar', [MedicamentoController::class, 'buscar']); // ACTUALIZADA
+    Route::get('/medicamentos/mas-usados', [MedicamentoController::class, 'masUsados']); // NUEVA
     Route::get('/medicamentos', [MedicamentoController::class, 'index']);
     Route::post('/medicamentos', [MedicamentoController::class, 'store']);
     Route::get('/medicamentos/{id}', [MedicamentoController::class, 'show']);
     Route::put('/medicamentos/{id}', [MedicamentoController::class, 'update']);
     Route::delete('/medicamentos/{id}', [MedicamentoController::class, 'destroy']);
-    /////////////////////////////////////////////////////////////////////////////////////////
-    Route::get('/medicamentos/buscar', [MedicamentoController::class, 'buscar']); // ACTUALIZADA
-    Route::get('/medicamentos/mas-usados', [MedicamentoController::class, 'masUsados']); // NUEVA
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ///CONFIGURACIONES RUTAS///------------------------------------------------------------------------------------------------
