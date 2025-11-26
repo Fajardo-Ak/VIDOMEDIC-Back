@@ -10,6 +10,7 @@ use App\Services\GeneradorDosisService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class TratamientoController extends Controller
 {
@@ -21,7 +22,6 @@ class TratamientoController extends Controller
     }
 
     // GET - Listar tratamientos del usuario
-    // (Sin cambios)
     public function index()
     {
         $usuarioId = Auth::id();
@@ -37,13 +37,10 @@ class TratamientoController extends Controller
         ]);
     }
 
-    // --- INICIO DE MODIFICACIÓN 'store' ---
     // POST - Crear nuevo tratamiento completo
     public function store(Request $request)
     {
         $usuarioId = Auth::id(); // Obtenemos el ID de usuario al inicio
-
-        // --- CAMBIO 1: Nueva Validación ---
         $request->validate([
             'nombre_tratamiento' => 'required|string|max:100',
             'fecha_inicio' => 'required|date',
@@ -51,13 +48,11 @@ class TratamientoController extends Controller
             'notas' => 'nullable|string',
             'medicamentos' => 'required|array|min:1',
 
-            // --- Nuevas reglas de validación para el "Súper-Formulario" ---
             'medicamentos.*.medicamento_id' => 'nullable|exists:medicamentos,id', // Ahora puede ser nulo
             'medicamentos.*.medicamento_nombre' => 'required|string|max:100',
             'medicamentos.*.via_administracion' => 'required|in:Oral,Inyectable,Tópica,Oftálmica,Ótica,Nasal,Rectal,Vaginal,Inhalada,Otro',
             'medicamentos.*.presentacion' => 'nullable|string|max:150',
             'medicamentos.*.importancia' => 'required|in:baja,media,alta,critica',
-            // --- Fin de nuevas reglas ---
 
             'medicamentos.*.tipo_frecuencia' => 'required|in:horas,dias,horarios_fijos,semanal',
             'medicamentos.*.cantidad_por_toma' => 'required|string|max:100',
@@ -67,7 +62,6 @@ class TratamientoController extends Controller
             'medicamentos.*.dias_semana' => 'required_if:medicamentos.*.tipo_frecuencia,semanal|array',
             'medicamentos.*.dias_semana.*' => 'in:lunes,martes,miercoles,jueves,viernes,sabado,domingo',
         ]);
-        // --- FIN CAMBIO 1 ---
 
         DB::beginTransaction();
 
@@ -81,12 +75,11 @@ class TratamientoController extends Controller
                 'estado' => 'activo'
             ]);
 
-            // --- CAMBIO 2: Lógica "Inteligente" de Creación ---
             foreach ($request->medicamentos as $medData) {
                 
                 $medicamentoIdParaUsar = $medData['medicamento_id'];
 
-                // Si 'medicamento_id' es nulo, significa que es un medicamento nuevo (Caso B)
+                // Si 'medicamento_id' es nulo, significa que es un medicamento nuevo
                 if (is_null($medicamentoIdParaUsar)) {
                     // Usamos firstOrCreate para evitar duplicados en el catálogo
                     $nuevoMed = Medicamento::firstOrCreate(
@@ -103,7 +96,7 @@ class TratamientoController extends Controller
                     );
                     $medicamentoIdParaUsar = $nuevoMed->id;
                 }
-                // Si el ID no era nulo, $medicamentoIdParaUsar ya tiene el valor correcto (Caso A)
+                // Si el ID no era nulo, $medicamentoIdParaUsar ya tiene el valor correcto
 
                 // Ahora creamos el DetalleTratamiento con el ID correcto
                 $detalle = DetalleTratamiento::create([
@@ -118,7 +111,6 @@ class TratamientoController extends Controller
 
                 $this->generadorDosis->generarParaDetalle($detalle, $tratamiento);
             }
-            // --- FIN CAMBIO 2 ---
 
             DB::commit();
 
@@ -139,11 +131,8 @@ class TratamientoController extends Controller
             ], 500);
         }
     }
-    // --- FIN MODIFICACIÓN 'store' ---
-
-
+    
     // GET - Mostrar un tratamiento específico
-    // (Sin cambios)
     public function show($id)
     {
         $usuarioId = Auth::id();
@@ -168,7 +157,6 @@ class TratamientoController extends Controller
         ]);
     }
 
-    // --- INICIO MODIFICACIÓN 'update' ---
     // PUT - Actualizar tratamiento
     public function update(Request $request, $id)
     {
@@ -182,7 +170,7 @@ class TratamientoController extends Controller
             ], 404);
         }
 
-        // --- CAMBIO 1: Validación actualizada (igual a 'store') ---
+        //Validación
         $request->validate([
             'nombre_tratamiento' => 'sometimes|required|string|max:100',
             'fecha_inicio' => 'sometimes|required|date',
@@ -191,13 +179,11 @@ class TratamientoController extends Controller
             'estado' => 'sometimes|in:activo,completado,cancelado',
 
             'medicamentos' => 'required|array|min:1',
-            // --- Nuevas reglas ---
             'medicamentos.*.medicamento_id' => 'nullable|exists:medicamentos,id',
             'medicamentos.*.medicamento_nombre' => 'required|string|max:100',
             'medicamentos.*.via_administracion' => 'required|in:Oral,Inyectable,Tópica,Oftálmica,Ótica,Nasal,Rectal,Vaginal,Inhalada,Otro',
             'medicamentos.*.presentacion' => 'nullable|string|max:150',
             'medicamentos.*.importancia' => 'required|in:baja,media,alta,critica',
-            // --- Fin nuevas reglas ---
 
             'medicamentos.*.tipo_frecuencia' => 'required|in:horas,dias,horarios_fijos,semanal',
             'medicamentos.*.cantidad_por_toma' => 'required|string|max:100',
@@ -207,7 +193,6 @@ class TratamientoController extends Controller
             'medicamentos.*.dias_semana' => 'required_if:medicamentos.*.tipo_frecuencia,semanal|array',
             'medicamentos.*.dias_semana.*' => 'in:lunes,martes,miercoles,jueves,viernes,sabado,domingo',
         ]);
-        // --- FIN CAMBIO 1 ---
 
         DB::beginTransaction();
         try {
@@ -215,22 +200,20 @@ class TratamientoController extends Controller
             $tratamiento->update($request->only([
                 'nombre_tratamiento', 'fecha_inicio', 'fecha_fin', 'estado', 'notas'
             ]));
-
-            // --- CAMBIO 2: Lógica "Destruir y Reconstruir" (con lógica inteligente) ---
-            
+        
             // 1. Borrar todos los detalles antiguos
             foreach ($tratamiento->detalleTratamientos as $detalle) {
                 $detalle->dosisProgramadas()->delete();
                 $detalle->delete();
             }
 
-            // 2. Re-crear con la misma lógica "inteligente" de 'store'
+            // 2. Re-crear con la misma lógica de 'store'
             foreach ($request->medicamentos as $medData) {
                 
                 $medicamentoIdParaUsar = $medData['medicamento_id'];
 
                 if (is_null($medicamentoIdParaUsar)) {
-                    // Es un med nuevo, crearlo o encontrarlo
+                    // Es un medicamento nuevo, crearlo o encontrarlo
                     $nuevoMed = Medicamento::firstOrCreate(
                         [
                             'usuario_id' => $usuarioId,
@@ -260,7 +243,6 @@ class TratamientoController extends Controller
                 // 3. Regenerar las dosis
                 $this->generadorDosis->generarParaDetalle($detalle, $tratamiento);
             }
-            // --- FIN CAMBIO 2 ---
             
             DB::commit();
 
@@ -279,10 +261,8 @@ class TratamientoController extends Controller
             ], 500);
         }
     }
-    // --- FIN MODIFICACIÓN 'update' ---
 
     // DELETE - Eliminar tratamiento COMPLETO
-    // (Sin cambios)
     public function destroy($id)
     {
         $usuarioId = Auth::id();
@@ -304,14 +284,13 @@ class TratamientoController extends Controller
     }
 
     // Verificar tratamiento activo
-    // (Mantenemos la corrección que ya tenías)
     public function verificarActivo()
     {
         $usuarioId = Auth::id();
         
         $tratamientoActivo = Tratamiento::where('usuario_id', $usuarioId)
             ->where('estado', 'activo')
-            ->with(['detalleTratamientos.medicamento']) // ✅ Correcto
+            ->with(['detalleTratamientos.medicamento'])
             ->first();
 
         return response()->json([
@@ -319,5 +298,28 @@ class TratamientoController extends Controller
             'tiene_activo' => !is_null($tratamientoActivo),
             'tratamiento' => $tratamientoActivo
         ]);
+    }
+
+    public function generarPdf($id)
+    {
+        $usuarioId = Auth::id();
+        
+        // Buscamos el tratamiento con todos sus detalles y medicamentos
+        $tratamiento = Tratamiento::where('usuario_id', $usuarioId)
+            ->with(['detalleTratamientos.medicamento', 'usuario'])
+            ->find($id);
+
+        if (!$tratamiento) {
+            return response()->json(['error' => 'Tratamiento no encontrado'], 404);
+        }
+
+        // Cargamos la vista
+        $pdf = Pdf::loadView('pdf.reporte_tratamiento', compact('tratamiento'));
+
+        // Opcional: Configurar tamaño carta vertical
+        $pdf->setPaper('letter', 'portrait');
+
+        // Descargamos (stream para que el front lo reciba como blob)
+        return $pdf->stream('Tratamiento-' . $tratamiento->id . '.pdf');
     }
 }

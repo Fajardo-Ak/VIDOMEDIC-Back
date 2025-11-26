@@ -70,6 +70,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/tratamientos/verificar-activo', [TratamientoController::class, 'verificarActivo']);
     Route::get('/tratamientos', [TratamientoController::class, 'index']);
     Route::post('/tratamientos', [TratamientoController::class, 'store']);
+    Route::get('/tratamientos/{id}/pdf', [TratamientoController::class, 'generarPdf']); //para buscar datos y generar el documento
     Route::get('/tratamientos/{id}', [TratamientoController::class, 'show']);
     Route::put('/tratamientos/{id}', [TratamientoController::class, 'update']);
     Route::delete('/tratamientos/{id}', [TratamientoController::class, 'destroy']);
