@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\UsuarioController;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,3 +17,6 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::get('/auth/{provider}/redirect', [UsuarioController::class, 'redirectToProvider']);
+Route::get('/auth/{provider}/callback', [UsuarioController::class, 'handleProviderCallback']);

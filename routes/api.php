@@ -30,8 +30,6 @@ Route::post('login', [UsuarioController::class,'login']);
 Route::get('/actualizaciones', [ContactoController::class, 'actualizaciones']);
 //rutas para diversos providers
 // OAuth Routes
-Route::get('/auth/{provider}/redirect', [UsuarioController::class, 'redirectToProvider']);
-Route::get('/auth/{provider}/callback', [UsuarioController::class, 'handleProviderCallback']);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

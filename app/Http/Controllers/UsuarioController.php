@@ -44,7 +44,7 @@ class UsuarioController extends Controller
 
             return response()->json([
                 'success'=> true,
-                'correo'=> $usuario,
+                'user'=> $usuario,
                 'token'=> $token
             ]);
         }
@@ -226,22 +226,20 @@ class UsuarioController extends Controller
         try {
             $config = [];
 
+            // ESTOS PARÁMETROS SÍ SON CORRECTOS PARA ->with()
             if ($provider === 'google') {
                 $config = [
-                    'redirect_uri' => config('services.google.redirect'),
                     'access_type'  => 'offline',
                     'prompt'       => 'consent select_account'
                 ];
             } elseif ($provider === 'microsoft') {
                 $config = [
-                    'redirect_uri' => config('services.microsoft.redirect'),
                     'prompt'       => 'select_account'
-                    // 'scope' => 'User.Read', // si lo necesitas
                 ];
             }
 
+            // Quitamos ->stateless() y dejamos que Laravel maneje la sesión
             $url = Socialite::driver($provider)
-                ->stateless()
                 ->with($config)
                 ->redirect()
                 ->getTargetUrl();
@@ -261,19 +259,34 @@ class UsuarioController extends Controller
             ], 500);
         }
     }
-
+    
     public function handleProviderCallback(string $provider)
     {
         Log::info('=== CALLBACK INICIADO ===', ['provider' => $provider]);
 
         try {
-            $socialUser = Socialite::driver($provider)->stateless()->user();
 
+            $socialUser = Socialite::driver($provider)->user();
             Log::info('Datos recibidos Socialite', [
                 'email' => $socialUser->getEmail(),
                 'name'  => $socialUser->getName(),
                 'id'    => $socialUser->getId(),
+                'foto_perfil' => substr($socialUser->getAvatar(), 0, 50)
             ]);
+
+            $avatar = $socialUser->getAvatar();
+            $rutaFotoPerfil = 'images/usuario-default.png'; // Valor por defecto
+
+            if ($avatar) {
+                if (filter_var($avatar, FILTER_VALIDATE_URL)) {
+                    // Es una URL (ej: Google)
+                    $rutaFotoPerfil = $avatar;
+                    $rutaFotoPerfil = Str::replace('http://', 'https://', $rutaFotoPerfil);
+                } elseif (Str::startsWith($avatar, 'data:image')) {
+                    // Es Base64 (ej: Microsoft), la guardamos como archivo
+                    $rutaFotoPerfil = $this->_guardarFotoBase64($avatar);
+                }
+            }   
 
             // Mantengo tu "forzar creación" + manejo de duplicado
             try {
@@ -283,7 +296,8 @@ class UsuarioController extends Controller
                     'password'    => Hash::make(Str::random(40)),
                     'provider'    => $provider,
                     'provider_id' => $socialUser->getId(),
-                    'foto_perfil' => $socialUser->getAvatar() ?? 'default.png'
+                    //'foto_perfil' => $socialUser->getAvatar() ?? 'default.png'
+                    'foto_perfil' => $rutaFotoPerfil
                 ]);
 
                 Log::info('USUARIO CREADO FORZADAMENTE', ['id' => $findUser->id]);
@@ -306,7 +320,8 @@ class UsuarioController extends Controller
                                 'password'    => Hash::make(Str::random(40)),
                                 'provider'    => $provider,
                                 'provider_id' => $socialUser->getId(),
-                                'foto_perfil' => $socialUser->getAvatar() ?? 'default.png'
+                                //'foto_perfil' => $socialUser->getAvatar() ?? 'default.png'
+                                'foto_perfil' => $rutaFotoPerfil
                             ]
                         );
                     }
@@ -327,6 +342,46 @@ class UsuarioController extends Controller
 
             $login = rtrim(env('FRONTEND_LOGIN', 'http://localhost:3001/login'), '/');
             return redirect()->away($login . '?error=creation_failed');
+        }
+    }
+
+    //funcion para capturar fotos Base64
+    private function _guardarFotoBase64($base64Image)
+    {
+        try {
+            // 1. Validar y obtener el tipo de imagen (jpeg, png, etc.)
+            if (!preg_match('/^data:image\/(\w+);base64,/', $base64Image, $type)) {
+                return 'images/usuario-default.png'; // No es una imagen Base64 válida
+            }
+            $extension = strtolower($type[1]); // ej: 'jpeg'
+
+            // 2. Obtener los datos de la imagen
+            $datosImagen = substr($base64Image, strpos($base64Image, ',') + 1);
+            $datosImagen = base64_decode($datosImagen);
+
+            if ($datosImagen === false) {
+                return 'images/usuario-default.png'; // Error al decodificar
+            }
+
+            // 3. Usar la misma lógica de tu función 'subirFoto'
+            $carpetaDestino = public_path('uploads/fotos_perfil');
+            if (!file_exists($carpetaDestino)) {
+                @mkdir($carpetaDestino, 0755, true);
+            }
+            
+            $nombreArchivo = time() . '_' . uniqid() . '.' . $extension;
+            $rutaRelativa = 'uploads/fotos_perfil/' . $nombreArchivo;
+            $rutaAbsoluta = public_path($rutaRelativa);
+
+            // 4. Guardar el archivo
+            file_put_contents($rutaAbsoluta, $datosImagen);
+
+            // 5. Devolver la ruta relativa (ej: 'uploads/fotos_perfil/12345.jpg')
+            return $rutaRelativa;
+
+        } catch (\Throwable $e) {
+            Log::error('Error al guardar foto Base64', ['message' => $e->getMessage()]);
+            return 'images/usuario-default.png';
         }
     }
 }

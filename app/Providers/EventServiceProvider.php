@@ -6,6 +6,8 @@ use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Event;
+use SocialiteProviders\Manager\SocialiteWasCalled;
+use SocialiteProviders\Microsoft\MicrosoftExtendSocialite;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -26,6 +28,7 @@ class EventServiceProvider extends ServiceProvider
     public function boot(): void
     {
         //
+        parent::boot();
     }
 
     /**
