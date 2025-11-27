@@ -7,6 +7,7 @@ use App\Http\Controllers\ContactoController;
 use App\Http\Controllers\MedicamentoController;
 use App\Http\Controllers\TratamientoController;
 use App\Http\Controllers\DosisController;
+use App\Http\Controllers\SupersetController;
 
 /*
 |--------------------------------------------------------------------------
@@ -30,6 +31,7 @@ Route::post('login', [UsuarioController::class,'login']);
 Route::get('/actualizaciones', [ContactoController::class, 'actualizaciones']);
 //rutas para diversos providers
 // OAuth Routes
+Route::get('/superset/guest-token', [SupersetController::class, 'getGuestToken']);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

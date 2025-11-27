@@ -43,6 +43,13 @@ return [
         'redirect'           => env('MICROSOFT_REDIRECT_URI'),
         'tenant'             => env('MICROSOFT_TENANT_ID', 'common'),
     ],
+
+    'superset' => [
+        'base_url'  => env('SUPERSET_BASE_URL', 'http://localhost:8088'),
+        'username'  => env('SUPERSET_USERNAME'),
+        'password'  => env('SUPERSET_PASSWORD'),
+        'dashboard_id' => env('SUPERSET_DASHBOARD_ID'),
+    ],
 ];
 
 /* CONFIGURACIONES DE GOOGLE Y MICROSOFT TEMPORALES */
