@@ -40,8 +40,8 @@ class DosisController extends Controller
             return [
                 'id' => $dosis->id,
                 'title' => $dosis->detalleTratamiento->medicamento->nombre,
-                'start' => $dosis->fecha_hora->toISOString(),
-                'end' => $dosis->fecha_hora->copy()->addMinutes(30)->toISOString(), // Duración de 30 min para visualización
+                'start' => $dosis->fecha_hora->toIso8601String(),
+                'end' => $dosis->fecha_hora->copy()->addMinutes(30)->toIso8601String(), // Duración de 30 min para visualización
                 'color' => $this->getColorImportancia($dosis->detalleTratamiento->medicamento->importancia),
                 'estado' => $dosis->estado,
                 'tomada' => $dosis->tomada,

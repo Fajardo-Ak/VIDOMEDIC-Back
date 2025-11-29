@@ -9,10 +9,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\URL;
+use NotificationChannels\WebPush\HasPushSubscriptions;
 
 class Usuario extends Authenticatable
 {
-    use HasFactory, Notifiable, HasApiTokens;
+    use HasFactory, Notifiable, HasApiTokens, HasPushSubscriptions;
     //Se espesifica el nombre de la tabla en la base de datos
     protected $table = 'usuarios';
     //si la clave primaria no es id se espesifica aqui si es nesesario

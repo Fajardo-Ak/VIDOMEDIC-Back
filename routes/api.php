@@ -45,6 +45,24 @@ Route::middleware('auth:sanctum')->group(function () {
     //Route::apiResource('inicio', ContactoController::class); nose que hace :u
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+///NOTIFICACION RUTA///---------------------------------------------------------------------------------------------------------
+    Route::post('/notifications/subscribe', function (Request $request) {
+        $request->validate([
+            'endpoint'    => 'required',
+            'keys.auth'   => 'required',
+            'keys.p256dh' => 'required',
+        ]);
+
+        $endpoint = $request->endpoint;
+        $token = $request->keys['auth'];
+        $key = $request->keys['p256dh'];
+
+        $request->user()->updatePushSubscription($endpoint, $key, $token);
+
+        return response()->json(['success' => true]);
+    });
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 ///MEDICAMENTOS RUTAS///----------------------------------------------------------------------------------------------------
     Route::get('/medicamentos/buscar', [MedicamentoController::class, 'buscar']); // ACTUALIZADA
     Route::get('/medicamentos/mas-usados', [MedicamentoController::class, 'masUsados']); // NUEVA
