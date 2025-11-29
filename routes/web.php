@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\UsuarioController;
+use Minishlink\WebPush\Vapid; // Importante
 
 /*
 |--------------------------------------------------------------------------
@@ -13,6 +15,17 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+
+
+
 Route::get('/', function () {
     return view('welcome');
+});
+
+Route::get('/auth/{provider}/redirect', [UsuarioController::class, 'redirectToProvider']);
+Route::get('/auth/{provider}/callback', [UsuarioController::class, 'handleProviderCallback']);
+
+
+Route::get('/generar-llaves', function () {
+    return Vapid::createVapidKeys(); 
 });

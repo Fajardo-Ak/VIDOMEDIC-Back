@@ -34,7 +34,7 @@ return [
     'google' => [
         'client_id'     => env('GOOGLE_CLIENT_ID'),
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),
-        'redirect'      => env('GOOGLE_REDIRECT_URI', 'http://localhost:8000/auth/google/callback'),
+        'redirect'      => env('GOOGLE_REDIRECT_URI'),
     ],
 
      'microsoft' => [
@@ -42,6 +42,13 @@ return [
         'client_secret'      => env('MICROSOFT_CLIENT_SECRET'),
         'redirect'           => env('MICROSOFT_REDIRECT_URI'),
         'tenant'             => env('MICROSOFT_TENANT_ID', 'common'),
+    ],
+
+    'superset' => [
+        'base_url'  => env('SUPERSET_BASE_URL', 'http://localhost:8088'),
+        'username'  => env('SUPERSET_USERNAME'),
+        'password'  => env('SUPERSET_PASSWORD'),
+        'dashboard_id' => env('SUPERSET_DASHBOARD_ID'),
     ],
 ];
 

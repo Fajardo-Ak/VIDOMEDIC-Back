@@ -8,61 +8,95 @@ use Illuminate\Support\Facades\Auth;
 
 class MedicamentoController extends Controller
 {
-    // GET - Listado de medicamentos del usuario
+    // GET - Listar medicamentos del usuario
     public function index()
     {
         $usuarioId = Auth::id();
-        $medicamentos = Medicamento::where('usuario_id', $usuarioId)
-            ->orderBy('created_at', 'desc')
-            ->get();
         
+        $medicamentos = Medicamento::where('usuario_id', $usuarioId)
+            ->where('activo', true)
+            ->orderBy('nombre')
+            ->get();
+
         return response()->json([
             'success' => true,
             'data' => $medicamentos
         ]);
     }
 
-    // POST - Crear nuevo medicamento
-    public function store(Request $req)
+    // POST - Crear nuevo medicamento en el catálogo
+    public function store(Request $request)
     {
-        $req->validate([
+        $request->validate([
             'nombre' => 'required|string|max:100',
-            'via_administracion' => 'required|in:Oral,Inyectable,Tópica,Otro',
-            'via_administracion_personalizada' => 'nullable|string|max:50',
-            'dosis' => 'required|string|max:100',
-            'frecuencia' => 'required|string|max:50',
-            'importancia' => 'sometimes|in:Alta,Media,Baja'
+            'via_administracion' => 'required|in:Oral,Inyectable,Tópica,Oftálmica,Ótica,Nasal,Rectal,Vaginal,Inhalada,Otro',
+            'via_administracion_personalizada' => 'nullable|string|max:100',
+            'presentacion' => 'nullable|string|max:150',
+            'importancia' => 'required|in:baja,media,alta,critica',
         ]);
 
-        // Validar "Otro"
-        if ($req->via_administracion === 'Otro' && empty($req->via_administracion_personalizada)) {
+        $usuarioId = Auth::id();
+
+        // Verificar si ya existe un medicamento con el mismo nombre
+        $medicamentoExistente = Medicamento::where('usuario_id', $usuarioId)
+            ->where('nombre', $request->nombre)
+            ->first();
+
+        if ($medicamentoExistente) {
             return response()->json([
                 'success' => false,
-                'error' => 'Especifica la vía de administración cuando selecciona "Otro"'
-            ], 422);
+                'error' => 'Ya existe un medicamento con este nombre en tu catálogo'
+            ], 409);
         }
 
-        $medicamento = new Medicamento;
-        $medicamento->usuario_id = Auth::id();
-        $medicamento->nombre = $req->nombre;
-        $medicamento->via_administracion = $req->via_administracion;
-        $medicamento->via_administracion_personalizada = $req->via_administracion_personalizada;
-        $medicamento->dosis = $req->dosis;
-        $medicamento->frecuencia = $req->frecuencia;
-        $medicamento->importancia = $req->importancia ?? 'Baja';
-        $medicamento->save();
+        $medicamento = Medicamento::create([
+            'usuario_id' => $usuarioId,
+            'nombre' => $request->nombre,
+            'via_administracion' => $request->via_administracion,
+            'via_administracion_personalizada' => $request->via_administracion_personalizada,
+            'presentacion' => $request->presentacion,
+            'importancia' => $request->importancia,
+            'activo' => true
+        ]);
 
         return response()->json([
             'success' => true,
-            'data' => $medicamento
+            'data' => $medicamento,
+            'message' => 'Medicamento agregado al catálogo'
         ], 201);
     }
 
-    // GET - Mostrar un medicamento
+    // GET - Buscar medicamentos para autocomplete
+    public function buscar(Request $request)
+    {
+        $request->validate([
+            'q' => 'required|string|min:2'
+        ]);
+
+        $usuarioId = Auth::id();
+        
+        $medicamentos = Medicamento::where('usuario_id', $usuarioId)
+            ->where('activo', true)
+            ->where('nombre', 'like', '%' . $request->q . '%')
+            ->select('id', 'nombre', 'presentacion', 'importancia')
+            ->orderBy('nombre')
+            ->limit(10)
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $medicamentos
+        ]);
+    }
+
+    // GET - Mostrar medicamento específico
     public function show($id)
     {
         $usuarioId = Auth::id();
-        $medicamento = Medicamento::where('usuario_id', $usuarioId)->find($id);
+        
+        $medicamento = Medicamento::where('usuario_id', $usuarioId)
+            ->with(['detalleTratamientos.tratamiento']) // Cargar tratamientos donde se usa
+            ->find($id);
 
         if (!$medicamento) {
             return response()->json([
@@ -78,10 +112,12 @@ class MedicamentoController extends Controller
     }
 
     // PUT - Actualizar medicamento
-    public function update(Request $req, $id)
+    public function update(Request $request, $id)
     {
         $usuarioId = Auth::id();
-        $medicamento = Medicamento::where('usuario_id', $usuarioId)->find($id);
+        
+        $medicamento = Medicamento::where('usuario_id', $usuarioId)
+            ->find($id);
 
         if (!$medicamento) {
             return response()->json([
@@ -90,39 +126,31 @@ class MedicamentoController extends Controller
             ], 404);
         }
 
-        $req->validate([
+        $request->validate([
             'nombre' => 'sometimes|required|string|max:100',
-            'via_administracion' => 'sometimes|required|in:Oral,Inyectable,Tópica,Otro',
-            'via_administracion_personalizada' => 'nullable|string|max:50',
-            'dosis' => 'sometimes|required|string|max:100',
-            'frecuencia' => 'sometimes|required|string|max:50',
-            'importancia' => 'sometimes|in:Alta,Media,Baja'
+            'via_administracion' => 'sometimes|required|in:Oral,Inyectable,Tópica,Oftálmica,Ótica,Nasal,Rectal,Vaginal,Inhalada,Otro',
+            'via_administracion_personalizada' => 'nullable|string|max:100',
+            'presentacion' => 'nullable|string|max:150',
+            'importancia' => 'sometimes|required|in:baja,media,alta,critica',
+            'activo' => 'sometimes|boolean'
         ]);
 
-        // Validar "Otro"
-        if ($req->has('via_administracion') && 
-            $req->via_administracion === 'Otro' && 
-            empty($req->via_administracion_personalizada)) {
-            return response()->json([
-                'success' => false,
-                'error' => 'Especifica la vía de administración cuando selecciona "Otro"'
-            ], 422);
-        }
-
-        $medicamento->fill($req->all());
-        $medicamento->save();
+        $medicamento->update($request->all());
 
         return response()->json([
             'success' => true,
-            'data' => $medicamento
+            'data' => $medicamento,
+            'message' => 'Medicamento actualizado correctamente'
         ]);
     }
 
-    // DELETE - Eliminar medicamento
+    // DELETE - Desactivar medicamento (eliminación lógica)
     public function destroy($id)
     {
         $usuarioId = Auth::id();
-        $medicamento = Medicamento::where('usuario_id', $usuarioId)->find($id);
+        
+        $medicamento = Medicamento::where('usuario_id', $usuarioId)
+            ->find($id);
 
         if (!$medicamento) {
             return response()->json([
@@ -131,11 +159,44 @@ class MedicamentoController extends Controller
             ], 404);
         }
 
-        $medicamento->delete();
+        // Verificar si el medicamento está en uso en tratamientos activos
+        $enUso = $medicamento->detalleTratamientos()
+            ->whereHas('tratamiento', function($query) {
+                $query->where('estado', 'activo');
+            })
+            ->exists();
+
+        if ($enUso) {
+            return response()->json([
+                'success' => false,
+                'error' => 'No se puede eliminar el medicamento porque está en uso en tratamientos activos'
+            ], 409);
+        }
+
+        // Desactivar en lugar de eliminar
+        $medicamento->update(['activo' => false]);
 
         return response()->json([
             'success' => true,
-            'message' => 'Medicamento eliminado correctamente'
+            'message' => 'Medicamento eliminado del catálogo'
+        ]);
+    }
+
+    // GET - Medicamentos más usados
+    public function masUsados()
+    {
+        $usuarioId = Auth::id();
+        
+        $medicamentosMasUsados = Medicamento::where('usuario_id', $usuarioId)
+            ->where('activo', true)
+            ->withCount(['detalleTratamientos as veces_usado'])
+            ->orderBy('veces_usado', 'desc')
+            ->limit(10)
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $medicamentosMasUsados
         ]);
     }
 }
