@@ -20,8 +20,8 @@ return [
     'allowed_methods' => ['*'],
 
     'allowed_origins' => [
-        'http://localhost:3001',
-        'http://127.0.0.1:3001'
+        env('FRONTEND_URL', 'http://localhost:3001'), // La URL que pondremos en Render
+        'http://localhost:3001', // Para que siga funcionando en tu PC
     ],
 
     'allowed_origins_patterns' => [],
