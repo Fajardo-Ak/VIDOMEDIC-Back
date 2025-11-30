@@ -37,7 +37,7 @@ Route::get('/superset/guest-token', [SupersetController::class, 'getGuestToken']
 // Ruta para que un servicio externo active el cron gratis
 Route::get('/cron-dosis-run', function () {
     Artisan::call('schedule:run');
-    return 'Cron ejecutado: ' + Artisan::output();
+    return 'Cron ejecutado: ' . Artisan::output();
 });
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
