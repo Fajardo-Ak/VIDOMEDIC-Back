@@ -26,10 +26,17 @@ RUN composer install --no-scripts --no-autoloader --no-dev
 COPY . .
 RUN composer dump-autoload --optimize && composer run-script post-root-package-install
 
-# 6. Permisos
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
+# 6. Permisos (MODIFICADO)
+# Agregamos /var/www/html/public para que Laravel pueda guardar fotos ahí sin error 500
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/public \
     && chmod -R 755 /var/www/html/storage \
-    && chmod -R 755 /var/www/html/bootstrap/cache
+    && chmod -R 755 /var/www/html/bootstrap/cache \
+    && chmod -R 755 /var/www/html/public
+
+# 7. Configuración PHP (NUEVO)
+# Aumentar límite de subida a 10MB para evitar errores de validación con fotos grandes
+RUN echo "upload_max_filesize = 10M" > /usr/local/etc/php/conf.d/uploads.ini \
+    && echo "post_max_size = 10M" >> /usr/local/etc/php/conf.d/uploads.ini
 
 EXPOSE 80
 CMD ["apache2-foreground"]
