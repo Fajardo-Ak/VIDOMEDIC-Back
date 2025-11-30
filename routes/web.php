@@ -29,3 +29,9 @@ Route::get('/auth/{provider}/callback', [UsuarioController::class, 'handleProvid
 Route::get('/generar-llaves', function () {
     return Vapid::createVapidKeys(); 
 });
+
+// Ruta DE EMERGENCIA para limpiar caché en Render (Muy importante)
+Route::get('/limpiar-todo', function () {
+    Artisan::call('optimize:clear');
+    return 'Caché borrada. Ahora Render debería ver tus nuevas rutas.';
+});
