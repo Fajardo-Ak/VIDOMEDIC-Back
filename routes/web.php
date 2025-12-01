@@ -37,8 +37,12 @@ Route::get('/limpiar-todo', function () {
     return 'Caché borrada. Ahora Render debería ver tus nuevas rutas.';
 });
 
-// Ruta para que un servicio externo active el cron gratis
 Route::get('/cron-dosis-run', function () {
-    Artisan::call('schedule:run');
-    return 'Cron ejecutado: ' . Artisan::output();
+    // Llamamos directo al comando (sin schedule) para ver los textos en pantalla
+    try {
+        Artisan::call('dosis:enviar');
+        return nl2br(Artisan::output()); 
+    } catch (\Exception $e) {
+        return "Error: " . $e->getMessage();
+    }
 });
