@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UsuarioController;
 use Minishlink\WebPush\Vapid; // Importante
+use Illuminate\Support\Facades\Artisan;
 
 /*
 |--------------------------------------------------------------------------
@@ -34,4 +35,10 @@ Route::get('/generar-llaves', function () {
 Route::get('/limpiar-todo', function () {
     Artisan::call('optimize:clear');
     return 'Caché borrada. Ahora Render debería ver tus nuevas rutas.';
+});
+
+// Ruta para que un servicio externo active el cron gratis
+Route::get('/cron-dosis-run', function () {
+    Artisan::call('schedule:run');
+    return 'Cron ejecutado: ' . Artisan::output();
 });

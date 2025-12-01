@@ -8,7 +8,6 @@ use App\Http\Controllers\MedicamentoController;
 use App\Http\Controllers\TratamientoController;
 use App\Http\Controllers\DosisController;
 use App\Http\Controllers\SupersetController;
-use Illuminate\Support\Facades\Artisan;
 
 /*
 |--------------------------------------------------------------------------
@@ -33,13 +32,6 @@ Route::get('/actualizaciones', [ContactoController::class, 'actualizaciones']);
 //rutas para diversos providers
 // OAuth Routes
 Route::get('/superset/guest-token', [SupersetController::class, 'getGuestToken']);
-
-// Ruta para que un servicio externo active el cron gratis
-Route::get('/cron-dosis-run', function () {
-    Artisan::call('schedule:run');
-    return 'Cron ejecutado: ' . Artisan::output();
-});
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ///RUTAS PROTEGIDAS///------------------------------------------------------------------------------------------------------
