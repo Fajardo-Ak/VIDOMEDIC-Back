@@ -45,6 +45,24 @@ Route::middleware('auth:sanctum')->group(function () {
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ///NOTIFICACION RUTA///---------------------------------------------------------------------------------------------------------
+    // 1. ESTA RUTA LA USA REACT PARA VER SI HAY ALERTAS NUEVAS (POLLING)
+    Route::get('/notificaciones/no-leidas', function (Request $request) {
+        // Devuelve solo las notificaciones que no se han visto
+        // Laravel sabe quién es el usuario gracias a Sanctum ($request->user())
+        return $request->user()->unreadNotifications;
+    });
+    // 2. ESTA RUTA SIRVE PARA MARCAR QUE YA SE VIO EL POPUP
+    Route::put('/notificaciones/{id}/marcar-leida', function (Request $request, $id) {
+        // Busca la notificación específica dentro de las del usuario
+        $notificacion = $request->user()->notifications()->find($id);
+
+        if ($notificacion) {
+            $notificacion->markAsRead(); // Pone la fecha en 'read_at' en la DB
+            return response()->json(['status' => 'ok']);
+        }
+
+        return response()->json(['error' => 'Notificación no encontrada'], 404);
+    });
     Route::post('/notifications/subscribe', function (Request $request) {
         $request->validate([
             'endpoint'    => 'required',
