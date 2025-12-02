@@ -22,16 +22,17 @@ class DosisNotification extends Notification
 
     public function via($notifiable)
     {
-        return ['database'];
+        return [WebPushChannel::class];
     }
 
     public function toArray($notifiable)
     {
-        return [
-            'titulo' => '⏰ ¡Hora de tu medicamento!',
-            'mensaje' => "Es hora de tomar: {$this->nombreMedicamento}",
-            'hora_dosis' => $this->hora,
-            'accion' => '/inicio' // A donde redirigir si le dan clic
-        ];
+        return (new WebPushMessage)
+            ->title('⏰ ¡Hora de tu medicamento!')
+            // Asegurate que el logo exista en tu frontend o usa uno público
+            ->icon('/logoazul.png') 
+            ->body("Es hora de tomar: {$this->nombreMedicamento} ({$this->hora})")
+            ->action('Ver Agenda', 'ver_agenda')
+            ->data(['url' => '/inicio']);
     }
 }

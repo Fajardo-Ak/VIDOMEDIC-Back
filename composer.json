@@ -9,6 +9,8 @@
         "barryvdh/laravel-dompdf": "^3.1",
         "guzzlehttp/guzzle": "^7.2",
         "laravel-notification-channels/webpush": "^9.0",
+        "ext-bcmath": "*",
+        "ext-gmp": "*",
         "laravel/framework": "^10.10",
         "laravel/sanctum": "^3.3",
         "laravel/socialite": "^5.23",
