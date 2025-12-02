@@ -25,7 +25,7 @@ class DosisNotification extends Notification
         return [WebPushChannel::class];
     }
 
-    public function toArray($notifiable)
+    public function toWebPush($notifiable, $notification)
     {
         return (new WebPushMessage)
             ->title('⏰ ¡Hora de tu medicamento!')
