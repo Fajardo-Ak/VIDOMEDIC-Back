@@ -50,6 +50,10 @@ return [
         'password'  => env('SUPERSET_PASSWORD'),
         'dashboard_id' => env('SUPERSET_DASHBOARD_ID'),
     ],
+    'stripe' => [
+    'secret' => env('STRIPE_SECRET'),
+],
+
 ];
 
 /* CONFIGURACIONES DE GOOGLE Y MICROSOFT TEMPORALES */
