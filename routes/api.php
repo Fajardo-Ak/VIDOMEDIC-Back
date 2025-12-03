@@ -8,7 +8,7 @@ use App\Http\Controllers\MedicamentoController;
 use App\Http\Controllers\TratamientoController;
 use App\Http\Controllers\DosisController;
 use App\Http\Controllers\SupersetController;
-
+use App\Http\Controllers\StripeController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -19,6 +19,14 @@ use App\Http\Controllers\SupersetController;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
+
+
+/*planees */
+
+
+Route::post('/create-checkout-session', [StripeController::class, 'createCheckoutSession']);
+
+
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
