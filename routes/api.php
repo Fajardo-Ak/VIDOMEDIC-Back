@@ -21,12 +21,6 @@ use App\Http\Controllers\StripeController;
 */
 
 
-/*planees */
-
-
-Route::post('/create-checkout-session', [StripeController::class, 'createCheckoutSession']);
-
-
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
@@ -46,6 +40,10 @@ Route::get('/superset/guest-token', [SupersetController::class, 'getGuestToken']
 Route::middleware('auth:sanctum')->group(function () {
 ///CERRAR SESION///---------------------------------------------------------------------------------------------------------
     Route::post('/logout', [UsuarioController::class, 'logout']);
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+///PLANES///----------------------------------------------------------------------------------------------------------------
+    Route::post('/create-checkout-session', [StripeController::class, 'createCheckoutSession']);
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ///INICIO RUTAS///----------------------------------------------------------------------------------------------------------
