@@ -330,7 +330,7 @@ class UsuarioController extends Controller
 
             $token = $findUser->createToken('auth_token')->plainTextToken;
 
-            $front = rtrim(env('FRONTEND_OAUTH_REDIRECT', 'http://localhost:3001/oauth/callback'), '/');
+            $front = rtrim(env('FRONTEND_OAUTH_REDIRECT', 'https://vidomedic-front.vercel.app/oauth/callback'), '/');
             return redirect()->away($front . '?token=' . urlencode($token));
 
         } catch (\Throwable $e) {
@@ -340,7 +340,7 @@ class UsuarioController extends Controller
                 'trace'    => $e->getTraceAsString(),
             ]);
 
-            $login = rtrim(env('FRONTEND_LOGIN', 'http://localhost:3001/login'), '/');
+            $login = rtrim(env('FRONTEND_LOGIN', 'https://vidomedic-front.vercel.app/login'), '/');
             return redirect()->away($login . '?error=creation_failed');
         }
     }

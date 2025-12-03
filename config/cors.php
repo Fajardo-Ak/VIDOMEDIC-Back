@@ -20,8 +20,7 @@ return [
     'allowed_methods' => ['*'],
 
     'allowed_origins' => [
-        'http://localhost:3001',
-        'http://127.0.0.1:3001'
+        env('FRONTEND_URL')
     ],
 
     'allowed_origins_patterns' => [],

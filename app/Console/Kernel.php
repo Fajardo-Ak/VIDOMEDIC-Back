@@ -12,7 +12,11 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // $schedule->command('inspire')->hourly();
+        // === AQUÍ ESTÁ LA CLAVE ===
+        // Ejecuta el comando de enviar dosis CADA MINUTO
+        $schedule->command('dosis:enviar')
+                 ->everyMinute()
+                 ->withoutOverlapping(); // Evita que se ejecute dos veces si se tarda mucho
     }
 
     /**

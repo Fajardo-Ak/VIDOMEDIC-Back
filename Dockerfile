@@ -1,41 +1,43 @@
 FROM php:8.2-apache
 
-# Habilitar módulos Apache
+# 1. Habilitar módulos
 RUN a2enmod rewrite headers proxy_http
 
-# Instalar extensiones PHP necesarias
+# 2. Instalar dependencias (MODIFICADO PARA NOTIFICACIONES)
+# Se agregó 'libgmp-dev' en apt-get
+# Se agregaron 'bcmath' y 'gmp' en docker-php-ext-install
 RUN apt-get update && apt-get install -y \
-    libzip-dev libpng-dev libjpeg-dev libfreetype6-dev libxml2-dev libonig-dev libcurl4-openssl-dev unzip zip git \
+    libzip-dev libpng-dev libjpeg-dev libfreetype6-dev libxml2-dev libonig-dev libcurl4-openssl-dev \
+    libgmp-dev \
+    unzip zip git curl default-mysql-client \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j$(nproc) gd zip pdo pdo_mysql xml curl opcache
+    && docker-php-ext-install -j$(nproc) gd zip pdo pdo_mysql xml curl opcache bcmath gmp
 
-# Instalar Composer
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+# 3. Configurar Apache a /public
+ENV APACHE_DOCUMENT_ROOT /var/www/html/public
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf
 
+# 4. Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 ENV COMPOSER_ALLOW_SUPERUSER=1
-
-# Copiar el código fuente de Laravel dentro del contenedor
-COPY . /var/www/html
-
 WORKDIR /var/www/html
 
-# Instalar dependencias PHP
-RUN composer install --no-dev --optimize-autoloader
+# 5. Copiar y construir
+COPY composer.json composer.lock ./
+RUN composer install --no-scripts --no-autoloader --no-dev
+COPY . .
+RUN composer dump-autoload --optimize && composer run-script post-root-package-install
 
-# Permisos necesarios
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
-    && chmod -R 755 /var/www/html \
-    && find /var/www/html -type f -exec chmod 644 {} \;
+# 6. Permisos
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/public \
+    && chmod -R 755 /var/www/html/storage \
+    && chmod -R 755 /var/www/html/bootstrap/cache \
+    && chmod -R 755 /var/www/html/public
 
-# Copiar configuración de Apache para Laravel y habilitar sitio
-COPY laravel.conf /etc/apache2/sites-available/laravel.conf
+# 7. Configuración PHP
+RUN echo "upload_max_filesize = 10M" > /usr/local/etc/php/conf.d/uploads.ini \
+    && echo "post_max_size = 10M" >> /usr/local/etc/php/conf.d/uploads.ini
 
-RUN a2dissite 000-default.conf \
-    && a2ensite laravel.conf \
-    && a2enmod rewrite
-
-# Exponer puerto 80
 EXPOSE 80
-
-# Comando para iniciar Apache en primer plano
 CMD ["apache2-foreground"]

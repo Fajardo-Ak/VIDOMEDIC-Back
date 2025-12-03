@@ -29,9 +29,10 @@ class DosisNotification extends Notification
     {
         return (new WebPushMessage)
             ->title('⏰ ¡Hora de tu medicamento!')
-            ->icon('/logoazul.png') // Asegúrate que este archivo exista en public/ del FRONTEND
+            // Asegurate que el logo exista en tu frontend o usa uno público
+            ->icon('/logoazul.png') 
             ->body("Es hora de tomar: {$this->nombreMedicamento} ({$this->hora})")
             ->action('Ver Agenda', 'ver_agenda')
-            ->data(['url' => '/inicio']); // Al hacer clic, te lleva a inicio
+            ->data(['url' => '/inicio']);
     }
 }
