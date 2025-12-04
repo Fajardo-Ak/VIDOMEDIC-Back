@@ -36,6 +36,9 @@ Route::get('/actualizaciones', [ContactoController::class, 'actualizaciones']);
 Route::get('/superset/guest-token', [SupersetController::class, 'getGuestToken']);
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+
+
 ///RUTAS PROTEGIDAS///------------------------------------------------------------------------------------------------------
 Route::middleware('auth:sanctum')->group(function () {
 ///CERRAR SESION///---------------------------------------------------------------------------------------------------------
@@ -45,10 +48,6 @@ Route::middleware('auth:sanctum')->group(function () {
 ///PLANES///----------------------------------------------------------------------------------------------------------------
     Route::post('/create-checkout-session', [StripeController::class, 'createCheckoutSession']);
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-///INICIO RUTAS///----------------------------------------------------------------------------------------------------------
-    //Route::apiResource('inicio', ContactoController::class); nose que hace :u
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 ///NOTIFICACION RUTA///---------------------------------------------------------------------------------------------------------
     // 1. ESTA RUTA LA USA REACT PARA VER SI HAY ALERTAS NUEVAS (POLLING)
@@ -69,6 +68,28 @@ Route::middleware('auth:sanctum')->group(function () {
 
         //return response()->json(['error' => 'Notificación no encontrada'], 404);
     //});
+
+    // Ruta especial para la App Android (Polling)
+    // Asegúrate que esta ruta esté DENTRO del grupo Route::middleware('auth:sanctum')
+    Route::post('/android/checar', function (Request $request) {
+        // Sanctum ya identificó al usuario por el Token.
+        $usuario = $request->user();
+
+        if ($usuario) {
+            // Buscamos notificaciones no leídas de ESTE usuario
+            $notificacion = $usuario->unreadNotifications->first();
+
+            if ($notificacion) {
+                $notificacion->markAsRead();
+                return response()->json([
+                    'hay_notificacion' => true,
+                    'mensaje' => $notificacion->data['mensaje']
+                ]);
+            }
+        }
+        return response()->json(['hay_notificacion' => false]);
+    });
+
     Route::post('/notifications/subscribe', function (Request $request) {
         $request->validate([
             'endpoint'    => 'required',

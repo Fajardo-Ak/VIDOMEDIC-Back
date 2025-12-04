@@ -22,7 +22,7 @@ class DosisNotification extends Notification
 
     public function via($notifiable)
     {
-        return [WebPushChannel::class];
+        return ['database', WebPushChannel::class];
     }
 
     public function toWebPush($notifiable, $notification)
@@ -34,5 +34,15 @@ class DosisNotification extends Notification
             ->body("Es hora de tomar: {$this->nombreMedicamento} ({$this->hora})")
             ->action('Ver Agenda', 'ver_agenda')
             ->data(['url' => '/inicio']);
+    }
+
+    // Configuración para Base de Datos (Android Polling)
+    public function toArray($notifiable)
+    {
+        return [
+            'titulo' => '⏰ ¡Hora de tu medicamento!',
+            'mensaje' => "Es hora de tomar: {$this->nombreMedicamento}",
+            'hora' => $this->hora
+        ];
     }
 }
