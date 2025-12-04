@@ -20,7 +20,8 @@ use App\Http\Controllers\StripeController;
 |
 */
 
-
+// En tu archivo api.php, dentro de Route::middleware('auth:sanctum')->group
+Route::post('/usuario/actualizar-plan', [UsuarioController::class, 'actualizarPlan']);
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();

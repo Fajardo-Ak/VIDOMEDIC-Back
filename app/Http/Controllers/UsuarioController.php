@@ -74,29 +74,45 @@ class UsuarioController extends Controller
         }
     }
 
-    // 1. Obtener perfil (igual)
-    public function obtenerPerfil()
-    {
-        $usuarioId = Auth::id();
-        $usuario = Usuario::find($usuarioId);
+   // 1. Obtener perfil (MODIFICAR ESTE)
+// 1. Obtener perfil (VERSIÓN COMPLETA)
+public function obtenerPerfil()
+{
+    $usuarioId = Auth::id();
+    $usuario = Usuario::find($usuarioId);
 
-        if (!$usuario) {
-            return response()->json([
-                'success' => false,
-                'error' => 'Usuario no encontrado'
-            ], 404);
-        }
-
+    if (!$usuario) {
         return response()->json([
-            'success' => true,
-            'usuario' => [
-                'id' => $usuario->id,
-                'nombre' => $usuario->nombre,
-                'correo' => $usuario->correo,
-                'foto_perfil' => $usuario->foto_perfil
-            ]
-        ]);
+            'success' => false,
+            'error' => 'Usuario no encontrado'
+        ], 404);
     }
+
+    // Determinar qué plan tiene
+    $plan = 'Básico'; // Por defecto
+    
+    // 1. Primero revisar si hay plan en sesión
+    $planSesion = session('plan_usuario_' . $usuarioId);
+    if ($planSesion) {
+        $plan = $planSesion;
+    }
+    // 2. Si no, revisar si está en campo 'provider' (formato "plan_Premium")
+    elseif ($usuario->provider && strpos($usuario->provider, 'plan_') === 0) {
+        $plan = str_replace('plan_', '', $usuario->provider);
+    }
+    // 3. Si no, usar 'Básico' por defecto
+
+    return response()->json([
+        'success' => true,
+        'usuario' => [
+            'id' => $usuario->id,
+            'nombre' => $usuario->nombre,
+            'correo' => $usuario->correo,
+            'foto_perfil' => $usuario->foto_perfil,
+            'plan_actual' => $plan // <-- Ahora es dinámico
+        ]
+    ]);
+}
 
     // 2. Editar perfil (igual)
     public function editarPerfil(Request $req)
@@ -213,6 +229,42 @@ class UsuarioController extends Controller
             'foto_perfil' => $rutaRelativa
         ]);
     }
+
+    // 5. Actualizar plan del usuario (MÉTODO NUEVO)
+public function actualizarPlan(Request $req)
+{
+    $usuarioId = Auth::id();
+    $usuario = Usuario::find($usuarioId);
+
+    if (!$usuario) {
+        return response()->json([
+            'success' => false,
+            'error' => 'Usuario no encontrado'
+        ], 404);
+    }
+
+    $req->validate([
+        'plan' => 'required|in:Básico,Premium,Experto'
+    ]);
+
+    // Si el usuario NO tiene campo 'plan' en la BD, creamos uno temporal
+    // usando el campo 'provider' o 'remember_token' como almacén temporal
+    // (Esto es mientras decides si añadir el campo a la tabla)
+    
+    // Opción A: Usar campo 'provider' temporalmente (si no lo usas)
+    $usuario->provider = 'plan_' . $req->plan; // Ej: "plan_Premium"
+    
+    // Opción B: Crear campo en memoria (session) - más simple
+    session(['plan_usuario_' . $usuarioId => $req->plan]);
+    
+    $usuario->save();
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Plan actualizado a ' . $req->plan,
+        'plan_actual' => $req->plan
+    ]);
+}
 
     /* Redirige al proveedor OAuth (google, microsoft)*/
     public function redirectToProvider(string $provider)
